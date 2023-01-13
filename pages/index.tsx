@@ -2,6 +2,8 @@ import { Button, Grid, Paper, TextField } from "@mui/material";
 import { Inter } from "@next/font/google";
 import Head from "next/head";
 import Link from "next/link";
+import { toast } from "react-toastify";
+import { EnvModal, openEnvModal } from "../components/EnvModal";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -22,6 +24,28 @@ export default function Home() {
                 Management page
               </Button>
             </Link>
+          </div>
+          <div className="flex items-center">
+            <Button
+              variant="contained"
+              className="text-yellow-500 h-min"
+              onClick={() => {
+                openEnvModal({
+                  title: "Global environment",
+                  onChange: (value) => {
+                    toast("Global environment changed to " + value);
+                  },
+                  onCancel: () => {
+                    toast("Global environment cancelled");
+                  },
+                  onSave: () => {
+                    toast("Global environment saved");
+                  },
+                });
+              }}
+            >
+              Global environment
+            </Button>
           </div>
           <div className="flex gap-2 items-center py-6 ">
             <TextField type="text" label="App name" size="small" />
@@ -53,6 +77,7 @@ export default function Home() {
           </Grid>
         </div>
       </main>
+      <EnvModal />
     </>
   );
 }

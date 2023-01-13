@@ -1,15 +1,8 @@
-import {
-  Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  FormControlLabel,
-  Switch,
-  TextField,
-} from "@mui/material";
+import { Button, FormControlLabel, Switch, TextField } from "@mui/material";
+import { toast } from "react-toastify";
 import { create } from "zustand";
 import { immer } from "zustand/middleware/immer";
+import { EnvModal, openEnvModal } from "../components/EnvModal";
 
 type AppStateStoreType = {
   envModalOpen: boolean;
@@ -47,8 +40,17 @@ const AppPage = () => {
           <Button
             size="small"
             onClick={() => {
-              appStateStore.setState((state) => {
-                state.envModalOpen = true;
+              openEnvModal({
+                title: "Environment variables",
+                onChange: (value) => {
+                  toast("Environment variables changed to " + value);
+                },
+                onCancel: () => {
+                  toast("Environment variables cancelled");
+                },
+                onSave: () => {
+                  toast("Environment variables saved");
+                },
               });
             }}
           >
@@ -60,8 +62,17 @@ const AppPage = () => {
           <Button
             size="small"
             onClick={() => {
-              appStateStore.setState((state) => {
-                state.buildModalOpen = true;
+              openEnvModal({
+                title: "Build variables",
+                onChange: (value) => {
+                  toast("Build variables changed to " + value);
+                },
+                onCancel: () => {
+                  toast("Build variables cancelled");
+                },
+                onSave: () => {
+                  toast("Build variables saved");
+                },
               });
             }}
           >
@@ -80,65 +91,6 @@ const AppPage = () => {
       </div>
       <EnvModal />
     </div>
-  );
-};
-
-const EnvModal = () => {
-  const open = appStateStore((state) => state.envModalOpen);
-
-  const setOpen = (value: boolean) => {
-    appStateStore.setState((state) => {
-      state.envModalOpen = value;
-    });
-  };
-
-  return (
-    <>
-      <Dialog
-        open={open}
-        onClose={() => {
-          setOpen(false);
-        }}
-        maxWidth="lg"
-        fullWidth
-      >
-        <DialogTitle>Environment varibales</DialogTitle>
-        <DialogContent>
-          <TextField
-            rows={10}
-            autoFocus
-            multiline
-            className="w-full"
-            sx={{
-              ":focus": {
-                outline: "none",
-              },
-              ":active": {
-                outline: "none",
-              },
-            }}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button
-            onClick={() => {
-              setOpen(false);
-            }}
-            color="inherit"
-          >
-            Cancel
-          </Button>
-          <Button
-            color="primary"
-            onClick={() => {
-              setOpen(false);
-            }}
-          >
-            Update
-          </Button>
-        </DialogActions>
-      </Dialog>
-    </>
   );
 };
 
