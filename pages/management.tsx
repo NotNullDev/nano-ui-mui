@@ -13,7 +13,11 @@ import { useState } from "react";
 import { toast } from "react-toastify";
 import { create } from "zustand";
 import { immer } from "zustand/middleware/immer";
-import { resetToken, updateUser } from "../api/nanoContext";
+import {
+  resetGlobalBuildStatus,
+  resetToken,
+  updateUser,
+} from "../api/nanoContext";
 import { NanoToolbar } from "../components/NanoToolbar";
 import { AuthStore } from "../stores/authStore";
 import { globalStore } from "../stores/global";
@@ -24,6 +28,23 @@ const ManagementPage = () => {
     <div className="flex-1 flex flex-col p-4">
       <NanoToolbar>
         <div className="flex items-center gap-2">
+          <Button
+            variant="outlined"
+            className="text-yellow-500"
+            onClick={() => {}}
+          >
+            Run docker system prune
+          </Button>
+          <Button
+            variant="outlined"
+            className="text-yellow-500"
+            onClick={async () => {
+              await resetGlobalBuildStatus();
+              toast("Success");
+            }}
+          >
+            Reset global build status
+          </Button>
           <Button
             variant="outlined"
             className="text-yellow-500"

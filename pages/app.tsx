@@ -292,7 +292,7 @@ type LogsAreaType = {
   appId: number;
 };
 
-let refetchInterval: number | null = null;
+let refetchInterval: any;
 
 const LogsArea = ({ appId }: LogsAreaType) => {
   const [logs, setLogs] = useState<string>("");
