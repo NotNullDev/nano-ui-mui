@@ -97,8 +97,9 @@ const AppPage = () => {
           <Button
             className="text-yellow-500 h-min"
             variant="contained"
-            onClick={() => {
-              runBuild(appInfoStore.getState().appName);
+            onClick={async () => {
+              await runBuild(appInfoStore.getState().appName);
+              toast("Build started");
             }}
           >
             Build now
@@ -141,13 +142,39 @@ const AppInfoArea = () => {
           label="App name"
           variant="standard"
           defaultValue={app.appName}
+          onChange={(e) => {
+            appInfoStore.setState((state) => {
+              state.appName = e.currentTarget.value ?? "";
+            });
+          }}
         />
-        <FormControlLabel control={<Switch defaultChecked />} label="Enabled" />
+        <FormControlLabel
+          control={
+            <Switch
+              defaultChecked
+              onChange={(e) => {
+                appInfoStore.setState((state) => {
+                  if (!e.currentTarget.checked) {
+                    state.appStatus = "disabled";
+                  } else {
+                    state.appStatus = "enabled";
+                  }
+                });
+              }}
+            />
+          }
+          label="Enabled"
+        />
         <TextField
           id="standard-basic"
           label="Repo url"
           variant="standard"
           defaultValue={app.repoUrl}
+          onChange={(e) => {
+            appInfoStore.setState((state) => {
+              state.repoUrl = e.currentTarget.value ?? "";
+            });
+          }}
         />
         <TextField
           id="standard-basic"
@@ -155,6 +182,11 @@ const AppInfoArea = () => {
           variant="standard"
           placeholder="default"
           defaultValue={app.repoBranch}
+          onChange={(e) => {
+            appInfoStore.setState((state) => {
+              state.repoBranch = e.currentTarget.value ?? "";
+            });
+          }}
         />
         <div className="flex gap-1 items-center">
           <label className="whitespace-nowrap">Environment variables</label>
@@ -307,12 +339,14 @@ const LogsArea = ({ appId }: LogsAreaType) => {
             className="border-r border-black border"
             onClick={async () => {
               if (refetchInterval) {
+                toast("interval already started");
                 return;
               }
               refetchInterval = setInterval(async () => {
                 const logs = await fetchLogs(appId);
                 setLogs(logs.logs);
               }, refechTime);
+              toast("started interval");
             }}
           >
             Start interval
