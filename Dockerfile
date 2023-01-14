@@ -1,39 +1,38 @@
-
-# build go image
-FROM golang:1.18 as builder
-
-# Create and change to the app directory.
+# Install dependencies only when needed
+FROM node:18.12.1-alpine AS node_modules
+# Check https://github.com/nodejs/docker-node/tree/b4117f9333da4138b03a546ec926ef50a31506c3#nodealpine to understand why libc6-compat might be needed.
 WORKDIR /app
 
-# Retrieve application dependencies.
-# This allows the container build to reuse cached dependencies.
-# Expecting to copy go.mod and if present go.sum.
-COPY ./go.* ./
-RUN go mod download
+COPY package.json yarn.lock ./
+RUN yarn --frozen-lockfile
 
-# Copy local code to the container image.
+FROM node:18.12.1-bullseye AS builder
+
+WORKDIR /app
+
 COPY . .
+COPY --from=node_modules /app/node_modules ./node_modules
 
-# Build the binary.
-RUN go build -v -o server .
+ARG NEXT_TELEMETRY_DISABLED 1
+ENV NEXT_TELEMETRY_DISABLED 1
 
+RUN yarn build
 
-# Use the official Debian slim image for a lean production container.
-# https://hub.docker.com/_/debian
-# https://docs.docker.com/develop/develop-images/multistage-build/#use-multi-stage-builds
-
-FROM docker:20.10-git
-
-RUN apk update
-# RUN apk upgrade
-RUN apk add bash
-
+# Production image, copy all the files and run next
+FROM node:18.12.1-alpine3.16 AS runner
 WORKDIR /app
 
-# Copy the binary to the production image from the builder stage.
-COPY --from=builder /app/server /app/server
+USER root
+
+ENV NEXT_TELEMETRY_DISABLED 1
+ENV PORT 3000
+
+COPY --from=builder /app/public ./public
+
+# Automatically leverage output traces to reduce image size
+# https://nextjs.org/docs/advanced-features/output-file-tracing
+COPY --from=builder  /app/.next/standalone ./
+COPY --from=builder  /app/.next/static ./.next/static
 
 EXPOSE 3000
-
-CMD ["/app/server"]
-
+CMD [ "node", "server.js", "--hostname", "0.0.0.0" ]
