@@ -12,10 +12,11 @@ import { toast } from "react-toastify";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { immer } from "zustand/middleware/immer";
-import { fetchLogs, updateApp } from "../api/nanoContext";
+import { deleteApp, fetchLogs, runBuild, updateApp } from "../api/nanoContext";
 import { EnvModal, envModalStore, openEnvModal } from "../components/EnvModal";
 import { NanoToolbar } from "../components/NanoToolbar";
 import { appInfoStore, globalStore } from "../stores/global";
+import { queryClient } from "./_app";
 
 type AppStateStoreType = {
   envModalOpen: boolean;
@@ -87,16 +88,19 @@ function useAppPageInit() {
 }
 
 const AppPage = () => {
+  const router = useRouter();
   return (
     <div className="flex flex-col gap-3 flex-1 p-4 items-center`">
       <NanoToolbar>
+        <div className="flex gap-2 items-center"></div>
         <div className="flex gap-2 items-center">
-          <Button className="text-yellow-500 h-min" variant="contained">
-            Download logs
-          </Button>
-        </div>
-        <div className="flex gap-2 items-center">
-          <Button className="text-yellow-500 h-min" variant="contained">
+          <Button
+            className="text-yellow-500 h-min"
+            variant="contained"
+            onClick={() => {
+              runBuild(appInfoStore.getState().appName);
+            }}
+          >
             Build now
           </Button>
         </div>
@@ -105,6 +109,12 @@ const AppPage = () => {
             className="h-min text-orange-500"
             color="error"
             variant="text"
+            onClick={async () => {
+              await deleteApp(Number(getAppIdFromWindowLocation()));
+              await queryClient.invalidateQueries(["nanoContext"]);
+              toast("App successfully deleted");
+              router.push("/");
+            }}
           >
             Delete app
           </Button>
@@ -146,7 +156,7 @@ const AppInfoArea = () => {
           placeholder="default"
           defaultValue={app.repoBranch}
         />
-        <div className="flex gap-1 items-end items-center">
+        <div className="flex gap-1 items-center">
           <label className="whitespace-nowrap">Environment variables</label>
           <Button
             size="small"
@@ -302,11 +312,10 @@ const LogsArea = ({ appId }: LogsAreaType) => {
               refetchInterval = setInterval(async () => {
                 const logs = await fetchLogs(appId);
                 setLogs(logs.logs);
-                toast(`fetched ${logs.logs.split("\n").length} lines of logs`);
               }, refechTime);
             }}
           >
-            Refetch interval
+            Start interval
           </Button>
           <Button
             onClick={() => {
@@ -325,7 +334,6 @@ const LogsArea = ({ appId }: LogsAreaType) => {
             onClick={async () => {
               const logs = await fetchLogs(appId);
               setLogs(logs.logs);
-              toast(`fetched ${logs.logs.split("\n").length} lines of logs`);
             }}
           >
             Refetch logs

@@ -8,9 +8,13 @@ import {
   InputLabel,
   Paper,
 } from "@mui/material";
-import { useState } from "react";
+import { useRouter } from "next/router";
+import { useEffect, useState } from "react";
+import { toast } from "react-toastify";
 import { create } from "zustand";
 import { immer } from "zustand/middleware/immer";
+import { login } from "../api/nanoContext";
+import { AuthStore } from "../stores/authStore";
 
 type LoginStoreType = {
   username: string;
@@ -28,7 +32,10 @@ const loginStore = create<LoginStoreType>()(
 
 function PasswordInput() {
   const [showPassword, setShowPassword] = useState(false);
+  const [repeatPassword, setRepeatPassword] = useState(false);
+
   const password = loginStore((state) => state.password);
+
   return (
     <FormControl
       sx={{
@@ -63,8 +70,8 @@ function PasswordInput() {
 }
 
 function UsernameInput() {
-  const [showPassword, setShowPassword] = useState(false);
   const username = loginStore((state) => state.username);
+
   return (
     <FormControl
       sx={{
@@ -89,8 +96,8 @@ function UsernameInput() {
 }
 
 function ServerUrlInput() {
-  const [showPassword, setShowPassword] = useState(false);
-  const username = loginStore((state) => state.username);
+  const serverUrl = AuthStore((state) => state.serverUrl);
+
   return (
     <FormControl
       sx={{
@@ -103,10 +110,10 @@ function ServerUrlInput() {
       <Input
         id="standard-adornment-username"
         type="text"
-        value={username}
+        value={serverUrl}
         onChange={(e) =>
-          loginStore.setState((state) => {
-            state.username = e.currentTarget.value;
+          AuthStore.setState((state) => {
+            state.serverUrl = e.currentTarget.value;
           })
         }
       />
@@ -115,6 +122,14 @@ function ServerUrlInput() {
 }
 
 export const LoginPage = () => {
+  const router = useRouter();
+
+  useEffect(() => {
+    if (AuthStore.getState().isLoggedIn) {
+      router.push("/");
+    }
+  }, []);
+
   return (
     <main className="flex flex-1 justify-center items-center">
       <Paper className="flex flex-col gap-2 p-24" elevation={3}>
@@ -122,7 +137,31 @@ export const LoginPage = () => {
         <UsernameInput />
         <PasswordInput />
         <ServerUrlInput />
-        <Button>Login</Button>
+        <Button
+          onClick={async () => {
+            let token = "";
+            try {
+              token = await login(
+                loginStore.getState().username,
+                loginStore.getState().password
+              );
+            } catch (e) {
+              toast("Failed to login", { type: "error" });
+              return;
+            }
+
+            AuthStore.setState((state) => {
+              state.token = token;
+              state.isLoggedIn = true;
+            });
+
+            toast("Logged in successfully", { type: "success" });
+
+            router.push("/");
+          }}
+        >
+          Login
+        </Button>
       </Paper>
     </main>
   );

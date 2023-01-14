@@ -10,13 +10,16 @@ export function showEnv() {
 export async function fetchNanoContext(): Promise<NanoContext> {
   const res = await nanoFetch("/");
   const data = (await res?.json()) as NanoContext;
+
   data.nanoConfig.globalEnvironment = base64Decode(
     data.nanoConfig.globalEnvironment
   );
+
   data.apps.map((app) => {
     app.envVal = base64Decode(app.envVal);
     app.buildVal = base64Decode(app.buildVal);
   });
+
   data.apps.sort((a, b) => b.ID - a.ID);
   return data;
 }
@@ -80,6 +83,7 @@ export async function deleteApp(appId: number) {
 
   return Number(data);
 }
+
 // https://github.com/Azure/fetch-event-source
 export async function runBuild(appName: string) {
   const res = await nanoFetch("/build?appName=" + appName, {
@@ -93,7 +97,16 @@ export async function runBuild(appName: string) {
   return data;
 }
 
-export async function updateUser(username: string, password: string) {
+export async function updateUser(
+  username: string,
+  password: string,
+  repeatPassword: string
+) {
+  if (password !== repeatPassword) {
+    toast.error("Passwords do not match");
+    return;
+  }
+
   const res = await nanoFetch("/update-user", {
     method: "POST",
     headers: {
@@ -119,6 +132,11 @@ export async function login(username: string, password: string) {
       password,
     }),
   });
+
+  if (!res?.ok) {
+    throw new Error("Login failed");
+  }
+
   let data = (await res?.text()) as string;
   // data comes in format "<token>", so we need to remove the quotes
   data = data.slice(1);
@@ -175,7 +193,7 @@ async function nanoFetch(path: string, options?: RequestInit) {
 
   if (!resp.ok) {
     const errMessage = await resp.json();
-    toast.error(errMessage.error);
+    // toast.error(errMessage.error);
     return;
     // throw new Error(resp.statusText);
   }

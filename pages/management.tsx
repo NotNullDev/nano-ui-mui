@@ -8,22 +8,60 @@ import {
   InputLabel,
   Paper,
 } from "@mui/material";
+import { useRouter } from "next/router";
 import { useState } from "react";
 import { toast } from "react-toastify";
 import { create } from "zustand";
 import { immer } from "zustand/middleware/immer";
+import { resetToken, updateUser } from "../api/nanoContext";
 import { NanoToolbar } from "../components/NanoToolbar";
+import { AuthStore } from "../stores/authStore";
+import { globalStore } from "../stores/global";
 
 const ManagementPage = () => {
+  const router = useRouter();
   return (
     <div className="flex-1 flex flex-col p-4">
       <NanoToolbar>
         <div className="flex items-center gap-2">
-          <Button variant="outlined" className="text-yellow-500">
+          <Button
+            variant="outlined"
+            className="text-yellow-500"
+            onClick={() => {
+              window.navigator.clipboard.writeText(
+                globalStore.getState().nanoConfig.token
+              );
+              toast("Copied token to clipboard");
+            }}
+          >
             Copy token
           </Button>
-          <Button variant="outlined" color="error">
+          <Button
+            variant="outlined"
+            color="error"
+            onClick={async () => {
+              const token = await resetToken();
+
+              globalStore.setState((state) => {
+                state.nanoConfig.token = token;
+              });
+
+              toast("Token reset. Please refresh the page.");
+
+              window.navigator.clipboard.writeText(token);
+              toast("Copied token to clipboard");
+            }}
+          >
             Reset token
+          </Button>
+          <Button
+            variant="outlined"
+            color="error"
+            onClick={() => {
+              toast(AuthStore.getState().serverUrl);
+            }}
+          >
+            Show env
           </Button>
         </div>
       </NanoToolbar>
@@ -32,14 +70,30 @@ const ManagementPage = () => {
           <div className="text-xl">Login</div>
           <UsernameInput />
           <PasswordInput />
-          <Button>Update password</Button>
+          <Button
+            onClick={async () => {
+              await updateUser(
+                loginStore.getState().username,
+                loginStore.getState().password,
+                loginStore.getState().repeatPassword
+              );
+
+              AuthStore.getState().isLoggedIn = false;
+              AuthStore.getState().token = "";
+
+              router.push("/login");
+
+              toast("Credentials updated");
+            }}
+          >
+            Update credentials
+          </Button>
         </Paper>
 
         <Paper className="flex flex-col gap-2 p-6 rounded-xl h-96">
           <div className="text-xl">Metadata</div>
           <NewTokenInput />
           <ServerUrlInput />
-          <Button>Update metadata</Button>
         </Paper>
       </div>
     </div>
@@ -70,6 +124,7 @@ function NewTokenInput() {
 type LoginStoreType = {
   username: string;
   password: string;
+  repeatPassword: string;
 };
 
 const loginStore = create<LoginStoreType>()(
@@ -77,13 +132,17 @@ const loginStore = create<LoginStoreType>()(
     return {
       username: "",
       password: "",
+      repeatPassword: "",
     };
   })
 );
 
 function PasswordInput() {
   const [showPassword, setShowPassword] = useState(false);
+
   const password = loginStore((state) => state.password);
+  const repeatPassword = loginStore((state) => state.repeatPassword);
+
   return (
     <>
       <FormControl
@@ -128,20 +187,12 @@ function PasswordInput() {
         <Input
           id="standard-adornment-password"
           type={showPassword ? "text" : "password"}
-          value={password}
-          onChange={(e) =>
+          value={repeatPassword}
+          onChange={(e) => {
             loginStore.setState((state) => {
-              state.password = e.currentTarget.value;
-            })
-          }
-          endAdornment={
-            <InputAdornment position="end">
-              <IconButton
-                aria-label="toggle password visibility"
-                onClick={() => setShowPassword(!showPassword)}
-              ></IconButton>
-            </InputAdornment>
-          }
+              state.repeatPassword = e.currentTarget.value ?? "";
+            });
+          }}
         />
       </FormControl>
     </>
@@ -175,8 +226,8 @@ function UsernameInput() {
 }
 
 function ServerUrlInput() {
-  const [showPassword, setShowPassword] = useState(false);
-  const username = loginStore((state) => state.username);
+  const serverUrl = AuthStore((state) => state.serverUrl);
+
   return (
     <FormControl
       sx={{
@@ -187,14 +238,10 @@ function ServerUrlInput() {
     >
       <InputLabel htmlFor="standard-adornment-username">Server url</InputLabel>
       <Input
-        id="standard-adornment-username"
+        id="standard-adornment-server-urll"
         type="text"
-        value={username}
-        onChange={(e) =>
-          loginStore.setState((state) => {
-            state.username = e.currentTarget.value;
-          })
-        }
+        onChange={(e) => {}}
+        defaultValue={serverUrl}
       />
     </FormControl>
   );

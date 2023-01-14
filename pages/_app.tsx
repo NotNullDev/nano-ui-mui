@@ -7,10 +7,14 @@ import { createTheme, ThemeProvider } from "@mui/material/styles";
 
 import type { AppProps } from "next/app";
 import Link from "next/link";
+import { useRouter } from "next/router";
+import { useEffect, useState } from "react";
 import { QueryClient, QueryClientProvider } from "react-query";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.min.css";
 import { UseNanoContext } from "../api/hooks";
+import { AuthStore } from "../stores/authStore";
+
 import "../styles/globals.css";
 
 export const queryClient = new QueryClient({
@@ -61,7 +65,7 @@ export default function App({ Component, pageProps }: AppProps) {
             pauseOnFocusLoss
             draggable
             pauseOnHover
-            theme="dark"
+            theme="light"
           />
           <div className="min-h-screen flex flex-col">
             <Header />
@@ -74,7 +78,16 @@ export default function App({ Component, pageProps }: AppProps) {
 }
 
 const Header = () => {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const authIsLoggedIn = AuthStore((state) => state.isLoggedIn);
+  const router = useRouter();
+
   UseNanoContext();
+
+  useEffect(() => {
+    setIsLoggedIn(authIsLoggedIn);
+  }, [authIsLoggedIn]);
+
   return (
     <Box>
       <AppBar position="static">
@@ -83,16 +96,35 @@ const Header = () => {
             Nano CI CD
           </Link>
           <div className="flex-1 gap-3 flex ">
-            <Link href="/app" color="inherit">
+            {/* <Link href="/app" color="inherit">
               Builds
             </Link>
             <Link href="/app" color="inherit">
               Stats
-            </Link>
+            </Link> */}
           </div>
-          <Button color="inherit">
-            <Link href="/login">Login</Link>
-          </Button>
+          {!isLoggedIn ? (
+            <>
+              <Button color="inherit">
+                <Link href="/login">Login</Link>
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button
+                color="inherit"
+                onClick={async () => {
+                  AuthStore.setState((state) => {
+                    state.token = "";
+                    state.isLoggedIn = false;
+                  });
+                  router.push("/login");
+                }}
+              >
+                Logout
+              </Button>
+            </>
+          )}
         </Toolbar>
       </AppBar>
     </Box>

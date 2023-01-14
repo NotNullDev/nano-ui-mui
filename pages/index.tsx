@@ -4,10 +4,11 @@ import Head from "next/head";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
-import { updateGlobalEnv } from "../api/nanoContext";
+import { createApp, updateGlobalEnv } from "../api/nanoContext";
 import { EnvModal, envModalStore, openEnvModal } from "../components/EnvModal";
 import { globalStore } from "../stores/global";
 import { App } from "../types/NanoTypes";
+import { queryClient } from "./_app";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -50,12 +51,7 @@ export default function Home() {
               Global environment
             </Button>
           </div>
-          <div className="flex gap-2 items-center py-6 ">
-            <TextField type="text" label="App name" size="small" />
-            <Button variant="contained" className="text-yellow-500">
-              Add
-            </Button>
-          </div>
+          <AddAppComponent />
         </Paper>
         <div className="w-4/5 mx-auto">
           <AppsGrid />
@@ -65,6 +61,35 @@ export default function Home() {
     </>
   );
 }
+
+const AddAppComponent = () => {
+  const [appName, setAppName] = useState("");
+
+  return (
+    <div className="flex gap-2 items-center py-6 ">
+      <TextField
+        type="text"
+        label="App name"
+        size="small"
+        value={appName}
+        onChange={(e) => {
+          setAppName(e.target.value ?? "");
+        }}
+      />
+      <Button
+        variant="contained"
+        className="text-yellow-500"
+        onClick={async () => {
+          await createApp(appName);
+          queryClient.invalidateQueries(["nanoContext"]);
+          toast("Successfully created app [" + appName + "]");
+        }}
+      >
+        Add
+      </Button>
+    </div>
+  );
+};
 
 const AppsGrid = () => {
   const apps = globalStore((state) => state.apps);
