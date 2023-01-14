@@ -14,6 +14,8 @@ import { toast } from "react-toastify";
 import { create } from "zustand";
 import { immer } from "zustand/middleware/immer";
 import {
+  clearBuilds,
+  dockerSystemPrune,
   resetGlobalBuildStatus,
   resetToken,
   updateUser,
@@ -31,9 +33,22 @@ const ManagementPage = () => {
           <Button
             variant="outlined"
             className="text-yellow-500"
-            onClick={() => {}}
+            onClick={async () => {
+              await dockerSystemPrune();
+              toast("success");
+            }}
           >
             Run docker system prune
+          </Button>
+          <Button
+            variant="outlined"
+            className="text-yellow-500"
+            onClick={async () => {
+              await clearBuilds();
+              toast("success");
+            }}
+          >
+            Clear builds
           </Button>
           <Button
             variant="outlined"

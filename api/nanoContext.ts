@@ -37,6 +37,18 @@ export async function resetToken(): Promise<string> {
   return data;
 }
 
+export async function clearBuilds(): Promise<void> {
+  const res = await nanoFetch("/clear-builds", {
+    method: "GET",
+  });
+}
+
+export async function dockerSystemPrune(): Promise<void> {
+  const res = await nanoFetch("/docker-system-prune", {
+    method: "GET",
+  });
+}
+
 export async function updateGlobalEnv(updatedEnv: string): Promise<string> {
   const res = await nanoFetch("/update-global-env", {
     method: "POST",
