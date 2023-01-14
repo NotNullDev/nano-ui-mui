@@ -1,8 +1,8 @@
-import immer from "immer";
 import { create } from "zustand";
+import { immer } from "zustand/middleware/immer";
 import { App, NanoContext } from "../types/NanoTypes";
 
-type GlobalStoreType = NanoContext;
+export type GlobalStoreType = NanoContext;
 
 export const globalStore = create<GlobalStoreType>()(
   immer((set, get, store) => {

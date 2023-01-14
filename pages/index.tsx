@@ -2,8 +2,12 @@ import { Button, Grid, Paper, TextField } from "@mui/material";
 import { Inter } from "@next/font/google";
 import Head from "next/head";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
-import { EnvModal, openEnvModal } from "../components/EnvModal";
+import { updateGlobalEnv } from "../api/nanoContext";
+import { EnvModal, envModalStore, openEnvModal } from "../components/EnvModal";
+import { globalStore } from "../stores/global";
+import { App } from "../types/NanoTypes";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -32,14 +36,13 @@ export default function Home() {
               onClick={() => {
                 openEnvModal({
                   title: "Global environment",
-                  onChange: (value) => {
-                    toast("Global environment changed to " + value);
-                  },
+                  value: globalStore.getState().nanoConfig.globalEnvironment,
                   onCancel: () => {
-                    toast("Global environment cancelled");
+                    toast("Global environment was not changed");
                   },
-                  onSave: () => {
-                    toast("Global environment saved");
+                  onSave: async () => {
+                    await updateGlobalEnv(envModalStore.getState().value);
+                    toast("Global environment successfully saved");
                   },
                 });
               }}
@@ -55,26 +58,7 @@ export default function Home() {
           </div>
         </Paper>
         <div className="w-4/5 mx-auto">
-          <Grid container spacing={2}>
-            <Grid xs={3} item>
-              <SignleAppPreview />
-            </Grid>
-            <Grid xs={3} item>
-              <SignleAppPreview />
-            </Grid>
-            <Grid xs={3} item>
-              <SignleAppPreview />
-            </Grid>
-            <Grid xs={3} item>
-              <SignleAppPreview />
-            </Grid>
-            <Grid xs={3} item>
-              <SignleAppPreview />
-            </Grid>
-            <Grid xs={3} item>
-              <SignleAppPreview />
-            </Grid>
-          </Grid>
+          <AppsGrid />
         </div>
       </main>
       <EnvModal />
@@ -82,27 +66,62 @@ export default function Home() {
   );
 }
 
-const SignleAppPreview = () => {
+const AppsGrid = () => {
+  const apps = globalStore((state) => state.apps);
+  return (
+    <Grid container spacing={2}>
+      {apps.map((app) => {
+        return (
+          <Grid xs={3} item key={app.ID}>
+            <SignleAppPreview app={app} />
+          </Grid>
+        );
+      })}
+    </Grid>
+  );
+};
+
+type SignleAppPreviewProps = {
+  app: App;
+};
+
+const SignleAppPreview = ({ app }: SignleAppPreviewProps) => {
+  const [currentlyBuilding, setCurrentlyBuilding] = useState(false);
+  const buildingAppId = globalStore((state) => state.buildingAppId);
+
+  useEffect(() => {
+    if (buildingAppId === app.ID) {
+      setCurrentlyBuilding(true);
+    } else {
+      setCurrentlyBuilding(false);
+    }
+  }, [buildingAppId]);
+
   return (
     <Paper className="p-4 h-[230px] flex flex-col">
-      <h1 className="text-xl">RandomApp</h1>
+      <h1 className="text-xl">{app.appName}</h1>
 
       <div className="flex flex-col flex-1 my-4">
-        <div>
-          Status: <span className="text-green-500">Building</span>
+        <div className="font-bold">
+          Status:{" "}
+          {currentlyBuilding && (
+            <span className="text-green-500">Building</span>
+          )}
+          {!currentlyBuilding && <span className="text-yellow-500">Idle</span>}
         </div>
+
         <div className="flex flex-col gap-1 mt-4">
           <div>
-            Last build status: <span className="text-green-500">Success</span>
+            Last build status: <span className="text-green-500">TODO</span>
           </div>
           <div>
-            Last built at: <span className="">01.01.2023 14:42</span>
+            Last built at: <span className="">TODO</span>
           </div>
         </div>
       </div>
 
       <div className="w-full flex justify-end">
-        <Link href="/app">
+        <Link href={"/app?appId=" + app.ID}>
           <Button>Details</Button>
         </Link>
       </div>

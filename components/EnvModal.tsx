@@ -83,6 +83,7 @@ export function openEnvModal({
 export const EnvModal = () => {
   const open = envModalStore((state) => state.open);
   const title = envModalStore((state) => state.title);
+  const value = envModalStore((state) => state.value);
 
   const setOpen = (value: boolean) => {
     envModalStore.setState((state) => {
@@ -96,6 +97,7 @@ export const EnvModal = () => {
         open={open}
         onClose={() => {
           setOpen(false);
+          envModalStore.getState().onCancel();
         }}
         maxWidth="lg"
         fullWidth
@@ -124,6 +126,7 @@ export const EnvModal = () => {
 
               envModalStore.getState().onChange(newValue);
             }}
+            defaultValue={value}
           />
         </DialogContent>
         <DialogActions>

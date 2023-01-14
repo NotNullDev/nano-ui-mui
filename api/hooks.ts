@@ -1,5 +1,5 @@
 import { useQuery } from "react-query";
-import { globalStore } from "../pages";
+import { globalStore } from "../stores/global";
 import { fetchNanoContext } from "./nanoContext";
 
 export const UseNanoContext = () => {

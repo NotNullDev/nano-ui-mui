@@ -7,61 +7,74 @@ import { createTheme, ThemeProvider } from "@mui/material/styles";
 
 import type { AppProps } from "next/app";
 import Link from "next/link";
+import { QueryClient, QueryClientProvider } from "react-query";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.min.css";
+import { UseNanoContext } from "../api/hooks";
 import "../styles/globals.css";
+
+export const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 export default function App({ Component, pageProps }: AppProps) {
   return (
     <>
-      <ThemeProvider
-        theme={createTheme({
-          palette: {
-            mode: "dark",
-            primary: {
-              main: "#fbc02d",
-              light: "#fbc02d",
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider
+          theme={createTheme({
+            palette: {
+              mode: "dark",
+              primary: {
+                main: "#fbc02d",
+                light: "#fbc02d",
+              },
+              background: {
+                default: "#312e81",
+                paper: "#312e81",
+              },
+              text: {
+                primary: "#ecebeb",
+                secondary: "rgba(249,249,249,0.7)",
+                disabled: "rgba(255,255,255,0.5)",
+              },
             },
-            background: {
-              default: "#312e81",
-              paper: "#312e81",
+            components: {
+              MuiButton: {
+                defaultProps: { disableRipple: true },
+              },
             },
-            text: {
-              primary: "#ecebeb",
-              secondary: "rgba(249,249,249,0.7)",
-              disabled: "rgba(255,255,255,0.5)",
-            },
-          },
-          components: {
-            MuiButton: {
-              defaultProps: { disableRipple: true },
-            },
-          },
-        })}
-      >
-        <CssBaseline />
-        <ToastContainer
-          position="top-right"
-          autoClose={5000}
-          hideProgressBar={false}
-          newestOnTop={false}
-          closeOnClick
-          rtl={false}
-          pauseOnFocusLoss
-          draggable
-          pauseOnHover
-          theme="dark"
-        />
-        <div className="min-h-screen flex flex-col">
-          <Header />
-          <Component {...pageProps} />
-        </div>
-      </ThemeProvider>
+          })}
+        >
+          <CssBaseline />
+          <ToastContainer
+            position="top-right"
+            autoClose={5000}
+            hideProgressBar={false}
+            newestOnTop={false}
+            closeOnClick
+            rtl={false}
+            pauseOnFocusLoss
+            draggable
+            pauseOnHover
+            theme="dark"
+          />
+          <div className="min-h-screen flex flex-col">
+            <Header />
+            <Component {...pageProps} />
+          </div>
+        </ThemeProvider>
+      </QueryClientProvider>
     </>
   );
 }
 
 const Header = () => {
+  UseNanoContext();
   return (
     <Box>
       <AppBar position="static">

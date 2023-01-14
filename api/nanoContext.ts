@@ -1,8 +1,7 @@
-import App from "next/app";
 import { toast } from "react-toastify";
 import { AuthStore } from "../stores/authStore";
 import { AppLogsType, globalStore } from "../stores/global";
-import { NanoContext } from "../types/NanoTypes";
+import { App, NanoContext } from "../types/NanoTypes";
 
 export function showEnv() {
   toast("serverUrl: " + AuthStore.getState().serverUrl);
