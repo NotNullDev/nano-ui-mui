@@ -1,4 +1,11 @@
-import { Button, Grid, Input, Paper } from "@mui/material";
+import {
+  Button,
+  FormControl,
+  Grid,
+  Input,
+  InputLabel,
+  Paper,
+} from "@mui/material";
 import { Inter } from "@next/font/google";
 import Head from "next/head";
 import Link from "next/link";
@@ -9,6 +16,7 @@ import { EnvModal, envModalStore, openEnvModal } from "../components/EnvModal";
 import { NanoToolbar } from "../components/NanoToolbar";
 import { globalStore } from "../stores/global";
 import { App } from "../types/NanoTypes";
+import { AppNameValidator } from "../utils/validators";
 import { queryClient } from "./_app";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -67,24 +75,47 @@ const AddAppComponent = () => {
   const [appName, setAppName] = useState("");
 
   return (
-    <form className="flex gap-2 items-center ">
-      <Input
-        type="text"
-        size="small"
-        value={appName}
-        onChange={(e) => {
-          setAppName(e.target.value ?? "");
+    <form className="flex gap-2 items-center">
+      <FormControl
+        sx={{
+          m: 1,
+          width: "25ch",
         }}
-      />
+        variant="outlined"
+      >
+        <InputLabel htmlFor="standard-adornment-app-name">App name</InputLabel>
+        <Input
+          type="text"
+          size="small"
+          placeholder=""
+          value={appName}
+          onChange={(e) => {
+            setAppName(e.target.value ?? "");
+          }}
+          autoComplete="off"
+          id="standard-adornment-app-name"
+        />
+      </FormControl>
+
       <Button
         variant="contained"
         className="text-yellow-500"
         onClick={async (e) => {
           e.preventDefault();
+
+          const isValid = AppNameValidator.validate(appName);
+
+          if (!isValid) {
+            toast.error("App name is not valid");
+            return;
+          }
+
           await createApp(appName);
-          queryClient.invalidateQueries(["nanocontext"]);
-          toast("successfully created app [" + appName + "]");
+          await queryClient.invalidateQueries(["nanocontext"]);
+          toast.success("successfully created app [" + appName + "]");
+          setAppName("");
         }}
+        type="submit"
       >
         Add
       </Button>
