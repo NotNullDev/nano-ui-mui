@@ -26,6 +26,14 @@ export const queryClient = new QueryClient({
 });
 
 export default function App({ Component, pageProps }: AppProps) {
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!AuthStore.getState().isLoggedIn && router.pathname !== "/login") {
+      router.push("/login");
+    }
+  }, [router.asPath]);
+
   return (
     <>
       <QueryClientProvider client={queryClient}>
@@ -87,6 +95,10 @@ const Header = () => {
   useEffect(() => {
     setIsLoggedIn(authIsLoggedIn);
   }, [authIsLoggedIn]);
+
+  if (router.asPath.startsWith("/login")) {
+    return null;
+  }
 
   return (
     <Box>

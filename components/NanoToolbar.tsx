@@ -9,7 +9,8 @@ export const NanoToolbar = ({ children, className }: NanoToolbarType) => {
   return (
     <Paper
       className={
-        "w-4/5 mx-auto h-20 mb-12 flex justify-between px-4 " + className ?? ""
+        "mx-auto container gap-4 p-5 justify-center  mb-12 flex max-w-[90vw] flex-wrap  whitespace-nowrap " +
+          className ?? ""
       }
     >
       {children}

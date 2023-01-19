@@ -29,77 +29,75 @@ const ManagementPage = () => {
   return (
     <div className="flex-1 flex flex-col p-4">
       <NanoToolbar>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outlined"
-            className="text-yellow-500"
-            onClick={async () => {
-              await dockerSystemPrune();
-              toast("success");
-            }}
-          >
-            Run docker system prune
-          </Button>
-          <Button
-            variant="outlined"
-            className="text-yellow-500"
-            onClick={async () => {
-              await clearBuilds();
-              toast("success");
-            }}
-          >
-            Clear builds
-          </Button>
-          <Button
-            variant="outlined"
-            className="text-yellow-500"
-            onClick={async () => {
-              await resetGlobalBuildStatus();
-              toast("Success");
-            }}
-          >
-            Reset global build status
-          </Button>
-          <Button
-            variant="outlined"
-            className="text-yellow-500"
-            onClick={() => {
-              window.navigator.clipboard.writeText(
-                globalStore.getState().nanoConfig.token
-              );
-              toast("Copied token to clipboard");
-            }}
-          >
-            Copy token
-          </Button>
-          <Button
-            variant="outlined"
-            color="error"
-            onClick={async () => {
-              const token = await resetToken();
+        <Button
+          variant="outlined"
+          className="text-yellow-500"
+          onClick={async () => {
+            await dockerSystemPrune();
+            toast("success");
+          }}
+        >
+          Run docker system prune
+        </Button>
+        <Button
+          variant="outlined"
+          className="text-yellow-500"
+          onClick={async () => {
+            await clearBuilds();
+            toast("success");
+          }}
+        >
+          Clear builds
+        </Button>
+        <Button
+          variant="outlined"
+          className="text-yellow-500"
+          onClick={async () => {
+            await resetGlobalBuildStatus();
+            toast("Success");
+          }}
+        >
+          Reset global build status
+        </Button>
+        <Button
+          variant="outlined"
+          className="text-yellow-500"
+          onClick={() => {
+            window.navigator.clipboard.writeText(
+              globalStore.getState().nanoConfig.token
+            );
+            toast("Copied token to clipboard");
+          }}
+        >
+          Copy token
+        </Button>
+        <Button
+          variant="outlined"
+          color="error"
+          onClick={async () => {
+            const token = await resetToken();
 
-              globalStore.setState((state) => {
-                state.nanoConfig.token = token;
-              });
+            globalStore.setState((state) => {
+              state.nanoConfig.token = token;
+            });
 
-              toast("Token reset. Please refresh the page.");
+            toast("Token reset. Please refresh the page.");
 
-              window.navigator.clipboard.writeText(token);
-              toast("Copied token to clipboard");
-            }}
-          >
-            Reset token
-          </Button>
-          <Button
-            variant="outlined"
-            color="error"
-            onClick={() => {
-              toast(AuthStore.getState().serverUrl);
-            }}
-          >
-            Show env
-          </Button>
-        </div>
+            window.navigator.clipboard.writeText(token);
+            toast("Copied token to clipboard");
+          }}
+        >
+          Reset token
+        </Button>
+        <Button
+          variant="outlined"
+          color="error"
+          onClick={() => {
+            toast(AuthStore.getState().serverUrl);
+          }}
+        >
+          Show env
+        </Button>
       </NanoToolbar>
       <div className="flex flex-1 justify-center gap-4">
         <Paper className="p-6 rounded-xl flex flex-col gap-3 w-min h-96">

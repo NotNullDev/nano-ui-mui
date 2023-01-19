@@ -46,6 +46,7 @@ function PasswordInput() {
     >
       <InputLabel htmlFor="standard-adornment-password">Password</InputLabel>
       <Input
+        autoComplete="off"
         id="standard-adornment-password"
         type={showPassword ? "text" : "password"}
         value={password}
@@ -106,9 +107,9 @@ function ServerUrlInput() {
       }}
       variant="standard"
     >
-      <InputLabel htmlFor="standard-adornment-username">Username</InputLabel>
+      <InputLabel htmlFor="standard-adornment-username">Server url</InputLabel>
       <Input
-        id="standard-adornment-username"
+        id="standard-adornment-server-url"
         type="text"
         value={serverUrl}
         onChange={(e) =>
@@ -133,35 +134,39 @@ export const LoginPage = () => {
   return (
     <main className="flex flex-1 justify-center items-center">
       <Paper className="flex flex-col gap-2 p-24" elevation={3}>
-        <h1>Welcome back</h1>
-        <UsernameInput />
-        <PasswordInput />
-        <ServerUrlInput />
-        <Button
-          onClick={async () => {
-            let token = "";
-            try {
-              token = await login(
-                loginStore.getState().username,
-                loginStore.getState().password
-              );
-            } catch (e) {
-              toast("Failed to login", { type: "error" });
-              return;
-            }
+        <form className="flex flex-col gap-2">
+          <h1 className="w-full text-xl text-center">Nano CI CD</h1>
+          <UsernameInput />
+          <PasswordInput />
+          <ServerUrlInput />
+          <Button
+            onClick={async (e) => {
+              e.preventDefault();
+              let token = "";
+              try {
+                token = await login(
+                  loginStore.getState().username,
+                  loginStore.getState().password
+                );
+              } catch (e) {
+                toast("Failed to login", { type: "error" });
+                return;
+              }
 
-            AuthStore.setState((state) => {
-              state.token = token;
-              state.isLoggedIn = true;
-            });
+              AuthStore.setState((state) => {
+                state.token = token;
+                state.isLoggedIn = true;
+              });
 
-            toast("Logged in successfully", { type: "success" });
+              toast("Logged in successfully", { type: "success" });
 
-            router.push("/");
-          }}
-        >
-          Login
-        </Button>
+              router.push("/");
+            }}
+            type="submit"
+          >
+            Login
+          </Button>
+        </form>
       </Paper>
     </main>
   );
