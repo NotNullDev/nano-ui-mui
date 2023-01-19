@@ -111,7 +111,7 @@ const AddAppComponent = () => {
           }
 
           await createApp(appName);
-          await queryClient.invalidateQueries(["nanocontext"]);
+          await queryClient.invalidateQueries(["nanoContext"]);
           toast.success("successfully created app [" + appName + "]");
           setAppName("");
         }}

@@ -1,5 +1,9 @@
 import {
   Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   FormControlLabel,
   Paper,
   Switch,
@@ -91,7 +95,7 @@ const AppPage = () => {
   const router = useRouter();
   return (
     <div className="flex flex-col gap-3 flex-1 p-4 items-center`">
-      <NanoToolbar>
+      <NanoToolbar className="justify-between">
         <div className="flex gap-2 items-center"></div>
         <div className="flex gap-2 items-center">
           <Button
@@ -105,25 +109,71 @@ const AppPage = () => {
             Build now
           </Button>
         </div>
-        <div className="flex gap-2 items-center">
-          <Button
-            className="h-min text-orange-500"
-            color="error"
-            variant="text"
-            onClick={async () => {
-              await deleteApp(Number(getAppIdFromWindowLocation()));
-              await queryClient.invalidateQueries(["nanoContext"]);
-              toast("App successfully deleted");
-              router.push("/");
-            }}
-          >
-            Delete app
-          </Button>
-        </div>
+        <DeleteAppArea />
       </NanoToolbar>
       <AppInfoArea />
       <EnvModal />
     </div>
+  );
+};
+
+const DeleteAppArea = () => {
+  const router = useRouter();
+  const [open, setOpen] = useState(false);
+  const appName = appInfoStore((state) => state.appName);
+
+  const handleCancelled = () => {
+    toast("Cancelled");
+    setOpen(false);
+  };
+
+  const handleAccepted = async () => {
+    await deleteApp(appInfoStore.getState().ID);
+    await queryClient.invalidateQueries(["nanoContext"]);
+    router.push("/");
+    toast.success("Deleted");
+    setOpen(false);
+  };
+
+  return (
+    <>
+      <div className="flex gap-2 items-center">
+        <Button
+          className="h-min text-orange-500"
+          color="error"
+          variant="text"
+          onClick={() => {
+            setOpen(true);
+          }}
+        >
+          Delete app
+        </Button>
+
+        <Dialog
+          sx={{ "& .MuiDialog-paper": { width: "80%", maxHeight: 435 } }}
+          maxWidth="xs"
+          open={open}
+          onClose={handleCancelled}
+        >
+          <DialogTitle>Delete app</DialogTitle>
+          <DialogContent dividers>
+            <p>
+              Are you sure you want to delete{" "}
+              <span className="text-red-500 font-bold "> {appName} </span> app?{" "}
+            </p>
+          </DialogContent>
+          <DialogActions>
+            <Button color="error" className="" onClick={handleAccepted}>
+              Yes
+            </Button>
+
+            <Button autoFocus onClick={handleCancelled}>
+              Cancel
+            </Button>
+          </DialogActions>
+        </Dialog>
+      </div>
+    </>
   );
 };
 
@@ -136,7 +186,7 @@ const AppInfoArea = () => {
       className="flex flex-1 container mx-auto justify-center gap-12"
       key={app.ID}
     >
-      <Paper className="flex flex-col gap-3 p-6 rounded-xl h-min">
+      <Paper className="flex flex-col gap-3 p-4 rounded-xl h-min w-full">
         <TextField
           id="standard-basic"
           label="App name"
@@ -299,7 +349,7 @@ const LogsArea = ({ appId }: LogsAreaType) => {
   const refechTime = logsSettingsStore((state) => state.refetchIntervalTime);
 
   return (
-    <Paper className="h-min px-4 rounded-xl" elevation={4}>
+    <Paper className="h-min px-4 rounded-xl w-full" elevation={4}>
       <Paper className="p-4 rounded-xl h-80 w-[45vw] mt-4 overflow-y-auto flex flex-col-reverse">
         {logs
           .split("\n")
@@ -309,48 +359,51 @@ const LogsArea = ({ appId }: LogsAreaType) => {
           })}
       </Paper>
       <div className="p-4 w-full flex justify-between my-4">
-        <div className="flex gap-2">
-          <TextField
-            id="outlined-number"
-            label="Refetch interval (ms)"
-            type="number"
-            InputLabelProps={{
-              shrink: true,
-            }}
-            className="w-40"
-            defaultValue={refechTime}
-            value={refechTime}
-            size="small"
-            onChange={(e) => {
-              const v = Number(e.currentTarget.value);
-              logsSettingsStore.setState((state) => {
-                if (v - state.refetchIntervalTime > 0) {
-                  state.refetchIntervalTime = state.refetchIntervalTime + 500;
-                } else {
-                  state.refetchIntervalTime = state.refetchIntervalTime - 500;
+        <div className="flex gap-4 items-center whitespace-nowrap flex-wrap">
+          <div className="flex gap-2">
+            <TextField
+              id="outlined-number"
+              label="Refetch interval (ms)"
+              type="number"
+              InputLabelProps={{
+                shrink: true,
+              }}
+              className="w-40"
+              defaultValue={refechTime}
+              value={refechTime}
+              size="small"
+              onChange={(e) => {
+                const v = Number(e.currentTarget.value);
+                logsSettingsStore.setState((state) => {
+                  if (v - state.refetchIntervalTime > 0) {
+                    state.refetchIntervalTime = state.refetchIntervalTime + 500;
+                  } else {
+                    state.refetchIntervalTime = state.refetchIntervalTime - 500;
+                  }
+                  if (state.refetchIntervalTime < 0) {
+                    state.refetchIntervalTime = 0;
+                  }
+                });
+              }}
+            />
+            <Button
+              className="border-r border-black border"
+              onClick={async () => {
+                if (refetchInterval) {
+                  toast("interval already started");
+                  return;
                 }
-                if (state.refetchIntervalTime < 0) {
-                  state.refetchIntervalTime = 0;
-                }
-              });
-            }}
-          />
-          <Button
-            className="border-r border-black border"
-            onClick={async () => {
-              if (refetchInterval) {
-                toast("interval already started");
-                return;
-              }
-              refetchInterval = setInterval(async () => {
-                const logs = await fetchLogs(appId);
-                setLogs(logs.logs);
-              }, refechTime);
-              toast("started interval");
-            }}
-          >
-            Start interval
-          </Button>
+                refetchInterval = setInterval(async () => {
+                  const logs = await fetchLogs(appId);
+                  setLogs(logs.logs);
+                }, refechTime);
+                toast("started interval");
+              }}
+            >
+              Start interval
+            </Button>
+          </div>
+
           <Button
             onClick={() => {
               if (refetchInterval) {
@@ -362,23 +415,24 @@ const LogsArea = ({ appId }: LogsAreaType) => {
           >
             Clear interval
           </Button>
-        </div>
-        <div>
-          <Button
-            onClick={async () => {
-              const logs = await fetchLogs(appId);
-              setLogs(logs.logs);
-            }}
-          >
-            Refetch logs
-          </Button>
-          <Button
-            onClick={() => {
-              onDownloadLogsClick();
-            }}
-          >
-            Download logs
-          </Button>
+
+          <div className="flex whitespace-nowrap h-min">
+            <Button
+              onClick={async () => {
+                const logs = await fetchLogs(appId);
+                setLogs(logs.logs);
+              }}
+            >
+              Refetch logs
+            </Button>
+            <Button
+              onClick={() => {
+                onDownloadLogsClick();
+              }}
+            >
+              Download logs
+            </Button>
+          </div>
         </div>
       </div>
     </Paper>
