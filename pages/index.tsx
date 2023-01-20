@@ -32,10 +32,15 @@ export default function Home() {
       </Head>
       <main className=" flex-1 flex flex-col p-4 ">
         <NanoToolbar className="justify-between">
-          <div className="flex items-center">
+          <div className="flex items-center gap-2">
             <Link href="/management">
               <Button variant="contained" className="text-yellow-500">
                 Management page
+              </Button>
+            </Link>
+            <Link href="/server-stats">
+              <Button variant="contained" className="text-yellow-500">
+                Server stats
               </Button>
             </Link>
           </div>
